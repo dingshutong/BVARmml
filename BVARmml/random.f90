@@ -1,137 +1,177 @@
-MODULE RANDOM
+! ------- Fortran modules: random --------------
+! ------- Generate Random distributions --------
+! ------- Author: Shutong Ding -----------------
+! ------- Last updated: 2016-11-12 -------------
+! ------- Dependency: IMSL, matutil, matrix ----
 
-INCLUDE 'link_fnl_static.h'  !DEC$ OBJCOMMENT LIB:'libiomp5md.lib'
+    
+module random
+
+include 'link_fnl_static.h'  !DEC$ OBJCOMMENT LIB:'libiomp5md.lib'
+
 use imsl_libraries
 use matutil
 use matrix
 
 implicit none
 
-interface RNORM
-    module procedure RNORM_V, RNORM_M
+! Generate random vector/matrix from Normal distribution N(0,1)
+interface rNorm
+    module procedure rNorm_V, RNorm_M
 end interface
 
-interface RUNIF
-    module procedure RUNIF_V, RUNIF_M
+! Generate random vector/matrix from Uniform distribution
+interface rUnif
+    module procedure rUnif_V, rUnif_M
 end interface
 
 
-CONTAINS
+    contains
+    
 !=====================================================================
-FUNCTION RUNIF_V(NR,a,b)
-INTEGER, INTENT(IN) :: NR
-REAL*8 a,b,RUNIF_V(NR)
-CALL DRNUN(NR,RUNIF_V)
-RUNIF_V=a+RUNIF_V*(b-a)
-END FUNCTION
+! Generate a i.i.d vector rUnif_V(nr) from Unif(a, b)    
+function rUnif_V(nr, a, b)    
+
+            integer, intent(in)  :: nr   ! The length of generated Uniform vector 
+            real*8,  intent(in)  :: a, b ! lower bound and upper bound
+            real*8   rUnif_V
+            
+            call drnun( nr, rUnif_V)
+            rUnif_V = a + rUnif_V*(b - a)   
+            
+end function
+    
+!=====================================================================
+! Generate a i.i.d matrix rUnif_M(nr X nc) from Unif(a, b)    
+function rUnif_M(nr, nc, a, b)    
+
+            integer, intent(in)  :: nr, nc ! The number of rows, columns
+            real*8,  intent(in)  :: a, b   ! lower bound and upper bound
+            real*8   rUnif_M(nr,nc), rVec(nr*nc)
+                
+            call drnun( nr*nc , rVec)
+            rVec = a + rVec*(b - a)
+            call antiVec( nr, nc, rVec, rUnif_M)
+
+end function
+    
+!=====================================================================
+! Generate a i.i.d vector rNorm_V(nr) from Normal(0,1)  
+function rNorm_V(nr)
+
+            integer, intent(in)  :: nr   ! The length of generated Normal N(0,1) vector 
+            integer i
+            real*8   rNorm_V(nr)
+            
+            call drnun( nr, rUnif_V)
+            rUnif_V = a + rUnif_V*(b - a)   
+                    
+            do i = 1,nr 
+                rNorm_V(i) = rnnof()
+            end do
+            
+end function
 
 !=====================================================================
-FUNCTION RUNIF_M(NR,NC,a,b)
-INTEGER, INTENT(IN) :: NR,NC
-REAL*8 a,b,RUNIF_M(NR,NC), R(NR*NC)
-CALL DRNUN(NR*NC,R)
-R=a+R*(b-a)
-CALL ANTIVEC(NR,NC,R,RUNIF_M)
-END FUNCTION
+! Generate i.i.d normal matrix rNorm_M(nr, nc) from Normal(0,1)
+function rNorm_M(nr, nc)
+
+            integer, intent(in)  :: nr, nc ! The number of rows, columns
+            integer i,j
+            real*8 rNorm_M(nr, nc)
+            
+            do  i = 1,nr
+                do  j = 1,nc
+                    rNorm_M(i,j) = rnnof()
+                end do
+            end do
+
+end function
 
 !=====================================================================
-FUNCTION RNORM_V(NR)
-INTEGER, INTENT(IN) :: NR
-INTEGER I
-REAL*8 RNORM_V(NR)
-DO I=1,NR
-    RNORM_V(I)=RNNOF()
-END DO
-END FUNCTION 
+! Generate i.i.d normal vector rMnorm(size(mean)) from mvn(mean, sqrt(var))
 
-!=====================================================================
-FUNCTION RNORM_M(NR,NC)
-INTEGER, INTENT(IN) :: NR,NC
-INTEGER I,J
-REAL*8 RNORM_M(NR,NC)
-DO 1120 I=1,NR
-   DO 1110 J=1,NC
-     RNORM_M(I,J)=RNNOF()
-  1110 CONTINUE
-1120 CONTINUE
-END FUNCTION 
-
-
-!=====================================================================
-SUBROUTINE RMNORM(MEAN,VAR,OT,IUVAR)
-INTEGER NR,IU,IRANK
-REAL*8,            INTENT(IN)  :: MEAN(:), VAR(:,:)
-INTEGER, optional, INTENT(IN)  :: IUVAR
-REAL*8,            INTENT(OUT) :: OT(:)
-REAL*8 R(SIZE(VAR,1),SIZE(VAR,1))
+subroutine rMnorm(mean, var, ot, iuvar)
+          
+real*8,            INTENT(IN)  :: MEAN(:), VAR(:,:)
+integer, optional, INTENT(IN)  :: IUVAR
+real*8,            INTENT(OUT) :: OT(:)
+real*8             R(SIZE(var,1),SIZE(var,1)) ! squared matrix
+integer            nr, iu, iRank
 
 ! IUVAR is a non-zero index for the variance structure, if IUVAR is presented
 ! with non-zero integer, then the input of VAR is the Cholesky factors U of 
 ! the variance.
 
-NR=SIZE(VAR,1)
+nr = size(var,1)
+iu = 0
 
-IU=0
+if (present(iuvar)) then
+      iu = iuvar 
+endif     
 
-IF (PRESENT(IUVAR)) THEN
-     IU=IUVAR
-ENDIF
+if (iu .eq. 0) then
+      call chfac(var, irank, R)
+else
+      r = var
+endif
 
-IF (IU .EQ. 0) THEN
-      CALL CHFAC(VAR,IRANK,R)
-ELSE
-      R=VAR          
-ENDIF
+call DRNMVN(1, nr, R, nr, ot, 1)
+ot = ot + mean
 
-CALL DRNMVN(1,NR,R,NR,OT,1)  
-  
-OT=OT+MEAN
-  
-END SUBROUTINE
+end subroutine
 
-!======================================================================
-FUNCTION RGAMMA(SHAPE,SCALE)
-REAL*8 SHAPE,SCALE,RGAMMA
-CALL DRNGAM(1,SHAPE,RGAMMA)
-RGAMMA=RGAMMA*SCALE
-END FUNCTION
 
 !======================================================================
+! Generate a value from Gamma(a, b), where a is shape parameter, b is the scale parameter
+function rGamma( shape, scale)
 
-FUNCTION RinvGAMMA2(SHAPE,SCALE)
-REAL*8 SHAPE,SCALE,RinvGAMMA2
-CALL DRNGAM(1,SHAPE/2D0,RinvGAMMA2)
-RinvGAMMA2=RinvGAMMA2*(2D0/SCALE)
-RinvGAMMA2=1D0/RinvGAMMA2
-END FUNCTION
+         real*8 shape, scale, rGamma
+         call drngam(1, shape, rGamma)
+         rGamma = rGamma*scale         
+ 
+end function
+
 !======================================================================
-SUBROUTINE RinvWishart(VAR,IDF,OT,IUVAR)
-INTEGER,           INTENT(IN)  :: IDF
-REAL*8,            INTENT(IN)  :: VAR(:,:)
-INTEGER, optional, INTENT(IN)  :: IUVAR
-REAL*8,            INTENT(OUT) :: OT(:,:)
-INTEGER NR, IU,IRANK
-REAL*8 :: R(SIZE(VAR,1),SIZE(VAR,2))
+! Generate a value from inv-Gamma2(a, b), where a is shape parameter, b is the scale parameter
+function rInvGamma2(shape, scale)
 
-NR=SIZE(VAR,1)
+         real*8 shape, scale, rInvGamma2    
+         call drngam(1, shape/2d0, rInvGamma2)
+         rInvGamma2 = 1d0/rInvGamma2
+         
+end function
 
-IU=0
+!======================================================================
+! Generate Chelosky decomp of covariance matrix for invWishart  
 
-! IUVAR should not equal to zero
-IF (PRESENT(IUVAR)) THEN
-     IU=IUVAR
-ENDIF
+subroutine rInvWishart(var, idf, ot, iuvar)
 
-IF (IU .EQ. 0) THEN
-      CALL CHFAC(VAR,IRANK,R)
-ELSE
-      R=VAR          
-ENDIF
-
-CALL invWISHBART(IDF,OT,S=R)
-
-!CALL trimult(R,R,OT,1,1,1,0)
-END SUBROUTINE
+          integer,           intent(in)  :: idf
+          real*8,            intent(in)  :: var(:,:)
+          integer, optional, intent(in)  :: iuvar
+          real*8,            intent(out) :: ot(:,:)
+          integer nr, iu, iRank
+          real*8  R(size(var,1),size(var,1))  ! squared matrix
+          
+          nr = size(var,1)
+          
+          iu = 0
+          
+          ! iuvar should not equal to zero
+          if (present(iuvar)) then
+              iu = iuvar 
+          endif    
+          
+          if (iu .eq. 0) then
+              call chfac(var, iRank, R)
+          else
+              R = var
+          endif
+          
+          call invWISHBART(IDF, OT, S = R)
+          
+end subroutine
 
 !*******************************************************
 subroutine WISHBART( idf, T, S, low, tran )
@@ -511,23 +551,23 @@ ln_MVN_dens = tmp/2.0d0
 
 end function
 
-
-
 !===================================================================
 
-
 FUNCTION ln_IW_dens(ppsi,psis,pv,INU1,INU2)
-REAL*8,            INTENT(IN) :: ppsi(:,:), pv,psis(:,:)
-INTEGER, OPTIONAL, INTENT(IN) :: INU1,INU2
 
-INTEGER q, I ,IRANK,IU1,IU2
-REAL*8 ln_IW_dens
+real*8,            INTENT(IN) :: ppsi(:,:), pv,psis(:,:)
+integer, optional, INTENT(IN) :: INU1,INU2
+
+integer q, I ,IRANK,IU1,IU2
+
+real*8 ln_IW_dens
 ! Whishart part
 
 double precision, parameter :: ln10 = 2.302585092994045684d0, &
 &							   ln2pi = 1.8378770664093454836d0, &
 &                              ln2 =   0.6931471805599453094D0,&
 &                              lnpi=   1.1447298858494001742D0
+
 double precision UCR1(size(ppsi,1),size(ppsi,2)), det1, det2, tmp, &
 & UCR2(size(ppsi,1),size(ppsi,2)),UCR12(size(ppsi,1),size(ppsi,2)), gam(size(ppsi,1)), &
 & UCR22(size(ppsi,1),size(ppsi,2))
@@ -597,4 +637,4 @@ ln_IW_dens=tmp/2D0
 END FUNCTION
 
 
-END MODULE
+end module
