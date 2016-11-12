@@ -1,10 +1,10 @@
-PROGRAM MAIN
+program mainSimulations
 
-INCLUDE 'link_fnl_static.h'!DEC$ OBJCOMMENT LIB:'libiomp5md.lib'
+include 'link_fnl_static.h'!DEC$ OBJCOMMENT LIB:'libiomp5md.lib'
 use imsl_libraries
 
 use postProc
-USE times
+use times
 use simutils
 use procUtils
 
