@@ -10,6 +10,7 @@ module random
 include 'link_fnl_static.h'  !DEC$ OBJCOMMENT LIB:'libiomp5md.lib'
 
 use imsl_libraries
+
 use matutil
 use matrix
 
@@ -63,9 +64,6 @@ function rNorm_V(nr)
             integer i
             real*8   rNorm_V(nr)
             
-            call drnun( nr, rUnif_V)
-            rUnif_V = a + rUnif_V*(b - a)   
-                    
             do i = 1,nr 
                 rNorm_V(i) = rnnof()
             end do
@@ -620,7 +618,7 @@ CALL trimult(UCR1,UCR2,UCR12,1,1,0,0)
 ! R^(-1)=R^(-1)*(U*R^(-1))'
 CALL trimult(UCR12,UCR1,UCR22,1,1,1,0)
 ! R^(-1)=R^(-1)*U
-CALL DTRMM('L','U','N','N',q,q,1d0,UCR2,q,UCR22,q)
+CALL dtrmm2('L','U','N','N',q,q,1d0,UCR2,q,UCR22,q)
 
 tmp= tmp-sum(DIAGONALS(UCR22))
 

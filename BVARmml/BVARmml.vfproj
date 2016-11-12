@@ -27,8 +27,23 @@
 		<Filter Name="Header Files" Filter="fi;fd"/>
 		<Filter Name="Resource Files" Filter="rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe"/>
 		<Filter Name="Source Files" Filter="f90;for;f;fpp;ftn;def;odl;idl">
+		<File RelativePath=".\BayesUtils.f90"/>
+		<File RelativePath=".\bma.f90"/>
+		<File RelativePath=".\dataUtils.f90"/>
+		<File RelativePath=".\main.f90"/>
+		<File RelativePath=".\matrix.f90"/>
 		<File RelativePath=".\matutil.f90"/>
-		<File RelativePath=".\prettyprint.f90"/>
+		<File RelativePath=".\mml.f90"/>
+		<File RelativePath=".\modelUtils.f90"/>
+		<File RelativePath=".\myData.f90"/>
+		<File RelativePath=".\postProc.f90"/>
+		<File RelativePath=".\prettyPrint.f90"/>
+		<File RelativePath=".\priorsPost.f90"/>
+		<File RelativePath=".\priorWeight.f90"/>
+		<File RelativePath=".\procUtils.f90"/>
 		<File RelativePath=".\random.f90"/>
-		<File RelativePath=".\times.f90"/></Filter></Files>
+		<File RelativePath=".\simUtils.f90"/>
+		<File RelativePath=".\structures.f90"/>
+		<File RelativePath=".\times.f90"/>
+		<File RelativePath=".\VARUtlis.f90"/></Filter></Files>
 	<Globals/></VisualStudioProject>

@@ -1,0 +1,54 @@
+### number of modelled variables, tdgp%m  
+7		
+### number of non-modelled variables (incl constant), tdgp%q
+0			
+### number of lags in specification, tdgp%p
+1
+### number of replications in simulation, tdgp%simreps 
+5
+### number of mcmc replications, tdgp%MCreps 
+100
+### Starting seed, start seed
+1111
+### Number of deterministic variable in model, mod%q
+1 
+### Serie name, tdgp%ser_name 
+Y1 Y2 X1 X2 X3 X4 X5 Xc
+### dimensions of var: min max, tdgp%DIMS(1),tdgp%DIMS(2)	
+1 4	
+### Number of presented top models,tdgp%present_top
+64
+### mc_lags is the number of model lags, mod%p 
+1         
+### The prior degrees of freedom
+9	   
+### The number of evaulation vector, 
+1
+### The evalvec vector
+1 
+### the percent of origins for evaluate predictive likelihood, mod%num
+0.02d0
+### Updating of posterior in evaluation/predictive likelihood (UPDATE or BEFORE or ALLDATA),mod%posteval
+BEFORE RAO
+### series_main The forcasted series
+1
+### The number of origins for forecasting performance
+12
+### The number of endogenous variable, tdgp%m_syst
+2
+### The number of exgenous variable, tdgp%m_spur
+5
+### The vec_syst(tdgp%m_syst*tdgp%m_syst*tdgp%p) 
+0.5d0 0.3d0 -0.2d0 0.7d0
+### The var_err(tdgp%m_syst+tdgp%m_spur)
+1d0 1d0 1d0 1d0 1d0 1d0 1d0 
+### The num_modprior
+2
+### The choosen model prior
+0.2d0 0.5d0
+### The output file name
+result.out
+### The method used for estimating marginalized marginal likelihood
+PRIOR
+### End checkpoint		
+END
